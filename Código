@@ -1,0 +1,83 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+
+const int pot1Pin = 34;  // Pin para el primer potenciómetro
+const int pot2Pin = 35;  // Pin para el segundo potenciómetro
+const int button1Pin = 13; // Pin para el primer botón (incrementar)
+const int button2Pin = 14; // Pin para el segundo botón (decrementar)
+
+
+int counter = 0;          // Contador de 8 bits
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // Dirección I2C de la LCD
+
+
+void setup() {
+  // Configurar pines
+  pinMode(button1Pin, INPUT);
+  pinMode(button2Pin, INPUT);
+
+
+  // Iniciar LCD
+  lcd.begin(16, 2);
+  lcd.backlight();
+ 
+  // Mostrar mensaje inicial
+  lcd.setCursor(0, 0);
+  lcd.print("Sistema Iniciado");
+  delay(1000);  // Pequeño retraso para ver el mensaje inicial
+  lcd.clear();
+}
+
+
+void loop() {
+  // **Lectura de potenciómetros**
+  int pot1Value = analogRead(pot1Pin);
+  int pot2Value = analogRead(pot2Pin);
+
+
+  // Convertir las lecturas de ADC a voltaje (0 - 3.3V)
+  float voltage1 = (pot1Value / 4095.0) * 3.3;
+  float voltage2 = (pot2Value / 4095.0) * 3.3;
+
+
+  // **Control del contador con botones**
+  if (digitalRead(button1Pin) == HIGH) {
+    counter++;
+    if (counter > 255) counter = 0;  // Limitar a 8 bits
+    delay(200);  // Debounce simple
+  }
+  if (digitalRead(button2Pin) == HIGH) {
+    counter--;
+    if (counter < 0) counter = 255;  // Limitar a 8 bits
+    delay(200);  // Debounce simple
+  }
+
+
+  // **Mostrar valores en la LCD**
+  // Mostrar los voltajes de los potenciómetros en la primera fila
+  lcd.setCursor(0, 0);
+  lcd.print("P1: ");
+  lcd.print(voltage1, 2);  // Mostrar con 2 decimales
+  lcd.print("V ");
+
+
+  lcd.setCursor(8, 0);     // Separar P1 y P2 en la misma línea
+  lcd.print("P2: ");
+  lcd.print(voltage2, 2);  // Mostrar con 2 decimales
+  lcd.print("V ");
+
+
+  // Mostrar el contador en la segunda fila
+  lcd.setCursor(0, 1);
+  lcd.print("Contador: ");
+  lcd.print(counter);
+
+
+  // Pequeña pausa para actualizar la pantalla
+  delay(500);
+}
+
+
